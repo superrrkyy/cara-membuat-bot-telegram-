@@ -1,13 +1,12 @@
 <div align="center">
 
-# 🤖 Panduan Lengkap Membuat Bot Telegram dengan Python
+# 🤖 Panduan Membuat Bot Telegram dengan Python
 
-Panduan step-by-step membuat bot Telegram menggunakan **python-telegram-bot**,
-dari nol sampai siap dideploy ke server.
+Panduan berbahasa Indonesia dan proyek contoh yang dapat dijalankan menggunakan **python-telegram-bot 22.x**. Berisi polling, percakapan bertahap, SQLite, webhook, pengujian, dan deployment Docker.
 
 ![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?logo=python&logoColor=white)
-![python-telegram-bot](https://img.shields.io/badge/python--telegram--bot-22.x-26A5E4?logo=telegram&logoColor=white)
-![Status](https://img.shields.io/badge/status-tutorial-success)
+![python-telegram-bot](https://img.shields.io/badge/python--telegram--bot-22.8-26A5E4?logo=telegram&logoColor=white)
+![Tests](https://img.shields.io/badge/tests-unittest-success)
 
 </div>
 
@@ -15,789 +14,288 @@ dari nol sampai siap dideploy ke server.
 
 ## 📑 Daftar Isi
 
-- [✨ Pendahuluan](#-pendahuluan)
-- [✅ Prasyarat](#-prasyarat)
-- [🧩 Membuat Bot di Telegram](#-membuat-bot-di-telegram)
-- [🔧 Menyiapkan Lingkungan Pengembangan](#-menyiapkan-lingkungan-pengembangan)
-- [🚀 Membuat Bot Sederhana](#-membuat-bot-sederhana)
-- [⚡ Fitur Lanjutan](#-fitur-lanjutan)
-- [📦 Contoh Kode Lengkap](#-contoh-kode-lengkap)
-- [🌍 Deployment](#-deployment)
-- [🔐 Keamanan & Best Practices](#-keamanan--best-practices)
-- [🩺 Troubleshooting](#-troubleshooting)
-- [📚 Referensi](#-referensi)
+- [Pendahuluan](#-pendahuluan)
+- [Prasyarat](#-prasyarat)
+- [Membuat bot di Telegram](#-membuat-bot-di-telegram)
+- [Menjalankan proyek](#-menjalankan-proyek)
+- [Isi dan struktur proyek](#-isi-dan-struktur-proyek)
+- [Konfigurasi polling dan webhook](#-konfigurasi-polling-dan-webhook)
+- [Database dan data pengguna](#-database-dan-data-pengguna)
+- [Pengujian](#-pengujian)
+- [Deployment](#-deployment)
+- [Keamanan dan batasan](#-keamanan-dan-batasan)
+- [Troubleshooting](#-troubleshooting)
+- [Referensi](#-referensi)
 
 ---
 
 ## ✨ Pendahuluan
 
-**Bot Telegram** adalah akun yang dijalankan oleh program, bukan manusia. Bot berinteraksi dengan pengguna melalui **Telegram Bot API**.
+Bot Telegram adalah akun yang dijalankan oleh program dan berinteraksi melalui Telegram Bot API. Repository ini berisi kode kerja, bukan hanya potongan tutorial: `bot.py`, dependensi, konfigurasi contoh, Dockerfile, dan tes tersedia langsung.
 
-| Keuntungan | Contoh penggunaan |
-|---|---|
-| ⚙️ **Otomatisasi** | Menjawab pertanyaan berulang, mengirim pengingat |
-| 🔗 **Integrasi** | Terhubung ke database, API, atau layanan eksternal |
-| 📈 **Skalabel** | Melayani banyak pengguna secara bersamaan |
-| 🎨 **Fleksibel** | Mendukung teks, gambar, video, tombol, dan lainnya |
+Contoh bot ini bisa:
 
----
+- merespons `/start`, `/help`, `/register`, dan `/cancel`;
+- mengulang pesan teks di **chat pribadi**;
+- menampilkan tombol inline;
+- menyimpan profil dan hasil pendaftaran ke SQLite;
+- berjalan dengan long polling atau webhook.
+
+Bot ini adalah contoh edukasi, bukan template produksi lengkap. Sesuaikan validasi, kapasitas, monitoring, dan kebijakan data sebelum digunakan untuk layanan nyata.
 
 ## ✅ Prasyarat
 
-Pastikan kamu sudah memiliki:
+- Python **3.10 atau lebih baru** dan `pip`.
+- Akun Telegram aktif.
+- Terminal dan editor kode.
+- Docker Compose (opsional, untuk deployment container).
 
-- [ ] Akun Telegram aktif
-- [ ] **Python 3.10+** (cek dengan `python --version`)
-- [ ] `pip` (biasanya sudah terpasang bersama Python)
-- [ ] Editor kode, misalnya VS Code atau PyCharm
-- [ ] Koneksi internet yang stabil
-- [ ] Git *(opsional, untuk version control)*
+Python 3.10+ sesuai persyaratan python-telegram-bot 22.8 ([dokumentasi versi 22.8](https://docs.python-telegram-bot.org/en/v22.8/)).
 
----
+## 🧩 Membuat bot di Telegram
 
-## 🧩 Membuat Bot di Telegram
+1. Cari akun resmi **@BotFather** di Telegram dan kirim `/start`.
+2. Kirim `/newbot`, lalu tentukan nama dan username bot. Username harus diakhiri `bot` dan unik.
+3. Simpan token yang diberikan BotFather secara rahasia. Token memberi akses untuk mengendalikan bot.
+4. Jika token pernah terungkap, cabut/ganti melalui BotFather.
 
-Token API adalah **kunci akses** bot kamu. Siapa pun yang memilikinya bisa mengendalikan bot.
+Jangan menempelkan token asli ke README, kode, issue, log, atau Git. File `.env` diabaikan oleh Git.
 
-### 1️⃣ Buka BotFather
+## 🚀 Menjalankan proyek
 
-1. Cari **@BotFather** di Telegram (pastikan ada centang biru ✔️).
-2. Kirim perintah `/start`.
-
-### 2️⃣ Buat bot baru
-
-1. Kirim `/newbot`.
-2. Masukkan **nama** bot, misalnya `My Awesome Bot`.
-3. Masukkan **username** bot, dengan aturan:
-   - Harus diakhiri `bot`, misalnya `myawesome_bot`
-   - Hanya huruf, angka, dan underscore (`_`)
-   - Harus unik secara global
-4. BotFather akan memberikan token seperti ini:
-
-   ```text
-   1234567890:ABCdefGHIJklmNOpqrsTUVwxyz-1234567890
-   ```
-
-> [!WARNING]
-> Jangan bagikan token ini ke siapa pun dan jangan menuliskannya langsung di dalam kode.
-> Jika token bocor, kirim `/revoke` ke BotFather untuk membuat token baru.
-
-### 3️⃣ Konfigurasi bot *(opsional, tapi disarankan)*
-
-| Perintah BotFather | Fungsi |
-|---|---|
-| `/setdescription` | Deskripsi bot yang tampil di profil |
-| `/setabouttext` | Teks "About" |
-| `/setuserpic` | Foto profil bot |
-| `/setcommands` | Daftar perintah yang muncul di menu bot |
-| `/setinline` | Mengaktifkan mode inline |
-
-Contoh isi untuk `/setcommands` (satu perintah per baris):
-
-```text
-start - Mulai bot
-help - Bantuan
-register - Daftar nama dan umur
-```
-
----
-
-## 🔧 Menyiapkan Lingkungan Pengembangan
-
-Kita akan menggunakan **python-telegram-bot versi 22.x** yang bersifat *asynchronous* dan berbasis `Application`.
-
-### 1️⃣ Buat folder proyek
+Clone repository, lalu dari direktori repository:
 
 ```bash
-mkdir telegram-bot-tutorial
-cd telegram-bot-tutorial
+python --version
+python -m venv .venv
 ```
 
-### 2️⃣ Buat virtual environment
-
-Virtual environment mengisolasi dependensi proyek dari sistem.
+Aktifkan virtual environment:
 
 ```bash
-python -m venv venv
+# Linux / macOS
+source .venv/bin/activate
+
+# Windows PowerShell
+.venv\Scripts\Activate.ps1
 ```
 
-Aktifkan:
-
-<table>
-<tr>
-<th>🪟 Windows</th>
-<th>🐧 Linux / 🍎 macOS</th>
-</tr>
-<tr>
-<td>
+Pasang dependensi dan buat konfigurasi lokal:
 
 ```bash
-venv\Scripts\activate
+python -m pip install --upgrade pip
+python -m pip install -r requirements.txt
 ```
 
-</td>
-<td>
+Salin `.env.example` menjadi `.env`, kemudian isi `BOT_TOKEN` dengan token dari BotFather. Untuk Linux/macOS:
 
 ```bash
-source venv/bin/activate
+cp .env.example .env
 ```
 
-</td>
-</tr>
-</table>
-
-Jika berhasil, prompt terminal akan menampilkan `(venv)`.
-
-### 3️⃣ Instal dependensi
-
-```bash
-pip install "python-telegram-bot==22.8" "python-dotenv==1.2.4"
-```
-
-Atau buat file `requirements.txt` lalu jalankan `pip install -r requirements.txt`:
-
-```text
-python-telegram-bot==22.8
-python-dotenv==1.2.4
-```
-
-> [!NOTE]
-> Versi di atas dikunci agar contoh kode di panduan ini sudah diuji dan berjalan.
-> Jika ingin versi lain, cek [dokumentasi python-telegram-bot](https://docs.python-telegram-bot.org/) karena ada perubahan API antar versi mayor.
-> Versi 20.x tidak disarankan untuk Python 3.13 (lihat [Troubleshooting](#-troubleshooting)).
-
-### 4️⃣ Struktur proyek
-
-```text
-telegram-bot-tutorial/
-├── venv/              # Virtual environment (jangan di-commit)
-├── .env               # Token rahasia (jangan di-commit)
-├── .env.example       # Contoh isi .env (aman di-commit)
-├── .gitignore         # Daftar file yang diabaikan Git
-├── .dockerignore      # Daftar file yang tidak dimasukkan ke Docker image
-├── Dockerfile         # Resep untuk membuat Docker image
-├── requirements.txt   # Daftar dependensi
-├── bot.py             # File utama bot
-├── bot.db             # Database SQLite (dibuat otomatis)
-└── README.md          # Dokumentasi
-```
-
-Buat file `.gitignore`:
-
-```gitignore
-venv/
-.venv/
-__pycache__/
-*.pyc
-.env
-bot.db
-```
-
----
-
-## 🚀 Membuat Bot Sederhana
-
-Bot pertama ini akan merespons `/start`, `/help`, dan mengulang (*echo*) pesan teks apa pun.
-
-### 1️⃣ Simpan token di file `.env`
-
-```env
-BOT_TOKEN=1234567890:ABCdefGHIJklmNOpqrsTUVwxyz-1234567890
-```
-
-Sebagai referensi untuk tim, buat juga `.env.example` tanpa token asli:
-
-```env
-BOT_TOKEN=isi_token_dari_botfather
-```
-
-### 2️⃣ Kode dasar `bot.py`
-
-```python
-import logging
-import os
-
-from dotenv import load_dotenv
-from telegram import Update
-from telegram.ext import Application, CommandHandler, ContextTypes, MessageHandler, filters
-
-# Muat variabel dari file .env
-load_dotenv()
-
-TOKEN = os.getenv("BOT_TOKEN")
-if not TOKEN:
-    raise ValueError("BOT_TOKEN tidak ditemukan. Pastikan file .env berisi BOT_TOKEN.")
-
-# Aktifkan logging untuk memantau aktivitas dan error
-logging.basicConfig(
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-    level=logging.INFO,
-)
-logger = logging.getLogger(__name__)
-
-
-async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Kirim sambutan saat pengguna mengetik /start."""
-    user = update.effective_user
-    await update.message.reply_text(
-        f"Halo {user.first_name}! 👋\n"
-        "Saya adalah bot sederhana.\n"
-        "Ketik /help untuk melihat bantuan."
-    )
-
-
-async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Kirim daftar perintah."""
-    await update.message.reply_text(
-        "Perintah yang tersedia:\n"
-        "/start - Mulai bot\n"
-        "/help - Bantuan\n\n"
-        "Kirim pesan apa saja untuk saya ulangi."
-    )
-
-
-async def echo(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Balas pesan teks dengan isi yang sama."""
-    await update.message.reply_text(f"Echo: {update.message.text}")
-
-
-def main() -> None:
-    """Jalankan bot."""
-    application = Application.builder().token(TOKEN).build()
-
-    application.add_handler(CommandHandler("start", start))
-    application.add_handler(CommandHandler("help", help_command))
-    # Pesan teks yang bukan perintah
-    application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, echo))
-
-    logger.info("Bot mulai berjalan...")
-    application.run_polling(allowed_updates=Update.ALL_TYPES)
-
-
-if __name__ == "__main__":
-    main()
-```
-
-### 3️⃣ Jalankan bot
+Di Windows, salin berkas itu lewat File Explorer atau jalankan `Copy-Item .env.example .env` di PowerShell. Buka `.env`, ganti `BOT_TOKEN`, lalu jalankan:
 
 ```bash
 python bot.py
 ```
 
-Jika berhasil, terminal menampilkan log `Bot mulai berjalan...`. Buka Telegram, cari username bot kamu, lalu kirim `/start`.
+Secara default bot berjalan dengan polling. Buka chat pribadi bot di Telegram dan kirim `/start`. Jangan jalankan dua proses polling dengan token yang sama sekaligus.
 
-### 📖 Penjelasan singkat
+## 📁 Isi dan struktur proyek
 
-| Bagian | Fungsi |
-|---|---|
-| `load_dotenv()` | Membaca file `.env` ke environment |
-| `Application.builder()` | Membuat instance aplikasi bot |
-| `CommandHandler` | Menangani perintah seperti `/start` |
-| `MessageHandler` | Menangani pesan biasa (`filters.TEXT & ~filters.COMMAND`) |
-| `run_polling()` | Bot terus meminta update baru dari server Telegram |
-
----
-
-## ⚡ Fitur Lanjutan
-
-### 1️⃣ Reply Keyboard
-
-Reply keyboard menampilkan tombol di area keyboard utama (menggantikan keyboard HP).
-
-```python
-from telegram import KeyboardButton, ReplyKeyboardMarkup
-
-async def menu(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    keyboard = [
-        [KeyboardButton("Info"), KeyboardButton("Kontak")],
-        [KeyboardButton("Bantuan")],
-    ]
-    await update.message.reply_text(
-        "Pilih menu:",
-        reply_markup=ReplyKeyboardMarkup(keyboard, resize_keyboard=True),
-    )
+```text
+.
+├── .env.example             # Template konfigurasi tanpa token sungguhan
+├── .github/workflows/tests.yml # Tes otomatis pada push dan pull request
+├── .gitignore               # Mengabaikan rahasia, database, dan artefak Python
+├── .dockerignore            # Mengeluarkan rahasia dan file lokal dari image
+├── Dockerfile               # Image Docker non-root
+├── LICENSE                  # Lisensi MIT
+├── README.md                # Panduan ini
+├── bot.py                   # Implementasi bot yang dapat dijalankan
+├── compose.yaml             # Docker Compose dengan volume data persisten
+├── requirements.txt         # Versi dependensi yang dikunci
+└── tests/
+    └── test_bot.py          # Tes konfigurasi dan SQLite
 ```
 
-Tangkap teks tombol dengan regex:
+`bot.db` dibuat otomatis saat bot dijalankan dan tidak dimasukkan ke Git. `.env.example` aman untuk disalin, tetapi nilainya bukan konfigurasi produksi.
 
-```python
-application.add_handler(MessageHandler(filters.Regex("^Info$"), info_handler))
+### Variabel konfigurasi
+
+| Variabel | Wajib | Default | Keterangan |
+|---|---:|---|---|
+| `BOT_TOKEN` | Ya | — | Token dari BotFather. |
+| `BOT_MODE` | Tidak | `polling` | `polling` atau `webhook`. |
+| `BOT_DB_PATH` | Tidak | `bot.db` | Lokasi file SQLite. Di Compose disetel ke `/data/bot.db`. |
+| `WEBHOOK_LISTEN` | Tidak | `0.0.0.0` | Interface lokal untuk server webhook. |
+| `WEBHOOK_PORT` | Tidak | `8443` | Port lokal yang didengarkan. |
+| `WEBHOOK_PATH` | Tidak | `telegram` | Path webhook tanpa garis miring di awal/akhir. |
+| `WEBHOOK_URL` | Webhook | — | URL publik HTTPS, termasuk path, misalnya `https://bot.example.com/telegram`. |
+| `WEBHOOK_SECRET` | Webhook | — | Rahasia untuk memvalidasi header webhook Telegram. Gunakan nilai acak. |
+
+Aplikasi menolak konfigurasi webhook tanpa URL HTTPS, path yang cocok, atau secret yang valid. Buat secret acak, misalnya dengan `python -c "import secrets; print(secrets.token_urlsafe(32))"`; karakter yang diterima dibatasi sesuai format Telegram.
+
+## ⚙️ Konfigurasi polling dan webhook
+
+### Polling (default)
+
+Polling tidak memerlukan endpoint publik dan biasanya merupakan cara termudah untuk mulai. Pastikan hanya satu instance memakai token yang sama. Polling juga bisa digunakan di server produksi jika sesuai kebutuhan; webhook bukan persyaratan untuk produksi.
+
+### Webhook
+
+Pilih webhook bila deployment kamu mempunyai domain publik, TLS/HTTPS, dan reverse proxy atau konfigurasi sertifikat yang benar. Instal dependensi dari `requirements.txt`—file itu memasang ekstra `webhooks` yang menyediakan Tornado, dibutuhkan `run_webhook()` ([dokumentasi instalasi PTB](https://docs.python-telegram-bot.org/en/v22.8/)).
+
+Atur `.env` untuk mode webhook, misalnya:
+
+```env
+BOT_MODE=webhook
+WEBHOOK_LISTEN=0.0.0.0
+WEBHOOK_PORT=8443
+WEBHOOK_PATH=telegram
+WEBHOOK_URL=https://bot.example.com/telegram
+WEBHOOK_SECRET=isi_secret_acak_yang_aman
 ```
 
-### 2️⃣ Inline Keyboard & Callback Query
+`WEBHOOK_URL` harus alamat publik yang dapat diakses Telegram melalui HTTPS. TLS dapat diakhiri di reverse proxy; teruskan request untuk `/telegram` ke port aplikasi yang dikonfigurasi. Compose memetakan `127.0.0.1:8443` untuk reverse proxy yang berjalan di host. Jika proxy berjalan di container terpisah, gunakan jaringan internal bersama dan atur port/routing sesuai kebutuhan—jangan mengekspos endpoint HTTP aplikasi langsung ke internet. Jangan jalankan polling dan webhook secara bersamaan untuk bot yang sama. Kode menggunakan `secret_token`; jangan menghapus validasi secret untuk endpoint publik.
 
-Inline keyboard menampilkan tombol **di dalam pesan**.
+## 💾 Database dan data pengguna
 
-```python
-from telegram import InlineKeyboardButton, InlineKeyboardMarkup
-from telegram.ext import CallbackQueryHandler
+Bot menggunakan SQLite lokal tanpa server database. Operasi database dijalankan di thread terpisah agar operasi file tidak menahan event loop bot. Tabel menyimpan `user_id`, username, nama depan, nama pendaftaran, umur, serta waktu pembaruan. Saat profil berubah, data profil diperbarui tanpa menghapus data pendaftaran. Struktur tabel lama dari contoh awal juga dimigrasikan otomatis.
 
-async def start_with_buttons(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    keyboard = [
-        [InlineKeyboardButton("✅ Klik saya", callback_data="button_clicked")],
-        [InlineKeyboardButton("🌐 Buka website", url="https://example.com")],
-    ]
-    await update.message.reply_text(
-        "Pilih aksi:",
-        reply_markup=InlineKeyboardMarkup(keyboard),
-    )
+Di luar Docker, lokasi default adalah `bot.db` relatif ke direktori kerja. Pastikan direktori tersebut dapat ditulis dan buat cadangan bila data penting. Untuk beban besar, banyak instance, atau ketersediaan tinggi, gunakan database server dan strategi migrasi yang sesuai.
 
-async def button_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    query = update.callback_query
-    await query.answer()  # Wajib: memberi tahu Telegram bahwa klik sudah diterima
-    if query.data == "button_clicked":
-        await query.edit_message_text("Tombol sudah diklik! 🎉")
+Di Docker Compose, data disimpan pada named volume `telegram-bot-data`, sehingga tetap tersedia saat container diperbarui atau dibuat ulang. Jangan menghapus volume jika ingin mempertahankan database.
 
-# Daftarkan handler
-application.add_handler(CallbackQueryHandler(button_callback))
+## 🧪 Pengujian
+
+Tes tidak memerlukan token Telegram atau koneksi ke Bot API:
+
+```bash
+python -m unittest discover -s tests -v
+python -m compileall -q bot.py tests
 ```
 
-> [!TIP]
-> Batas `callback_data` adalah 64 byte. Simpan data besar di database atau `context.user_data`, lalu kirim ID-nya saja.
-
-### 3️⃣ ConversationHandler (alur multi-langkah)
-
-`ConversationHandler` dipakai untuk percakapan bertahap, misalnya pendaftaran.
-
-```python
-from telegram.ext import ConversationHandler
-
-NAME, AGE = range(2)
-
-async def register(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    await update.message.reply_text("Siapa namamu?")
-    return NAME
-
-async def get_name(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    context.user_data["name"] = update.message.text
-    await update.message.reply_text("Berapa umurmu?")
-    return AGE
-
-async def get_age(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    text = update.message.text.strip()
-    if not text.isdigit():
-        await update.message.reply_text("Umur harus berupa angka. Coba lagi:")
-        return AGE  # Tetap di state AGE
-    name = context.user_data.pop("name", "-")
-    await update.message.reply_text(f"Terima kasih! Nama: {name}, umur: {text}.")
-    return ConversationHandler.END
-
-async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    context.user_data.clear()
-    await update.message.reply_text("Pendaftaran dibatalkan.")
-    return ConversationHandler.END
-
-conv_handler = ConversationHandler(
-    entry_points=[CommandHandler("register", register)],
-    states={
-        NAME: [MessageHandler(filters.TEXT & ~filters.COMMAND, get_name)],
-        AGE: [MessageHandler(filters.TEXT & ~filters.COMMAND, get_age)],
-    },
-    fallbacks=[CommandHandler("cancel", cancel)],
-)
-application.add_handler(conv_handler)
-```
-
-### 4️⃣ Menyimpan data ke SQLite
-
-SQLite adalah database ringan yang tersimpan dalam satu file dan tidak memerlukan server.
-
-```python
-import sqlite3
-
-db = sqlite3.connect("bot.db")
-db.execute(
-    "CREATE TABLE IF NOT EXISTS users ("
-    "user_id INTEGER PRIMARY KEY, username TEXT, first_name TEXT)"
-)
-db.commit()
-
-async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    user = update.effective_user
-    db.execute(
-        "INSERT OR IGNORE INTO users (user_id, username, first_name) VALUES (?, ?, ?)",
-        (user.id, user.username, user.first_name),
-    )
-    db.commit()
-    await update.message.reply_text("Data kamu tersimpan! ✅")
-```
-
-> [!NOTE]
-> Gunakan parameter `?` seperti contoh di atas. **Jangan** menyusun query dengan f-string, karena rawan SQL injection.
-> Untuk bot yang lebih besar, pertimbangkan SQLAlchemy atau database server seperti PostgreSQL.
-
-### 5️⃣ Webhook *(untuk produksi)*
-
-**Polling** cocok untuk pengembangan. Untuk produksi, **webhook** lebih responsif dan hemat resource, karena Telegram yang mengirim update ke server kamu.
-
-Pada python-telegram-bot v20+, webhook bisa dijalankan langsung tanpa Flask:
-
-```python
-import os
-
-application.run_webhook(
-    listen="0.0.0.0",              # Dengarkan semua interface
-    port=8443,
-    url_path="telegram",           # Path lokal untuk menerima update
-    webhook_url="https://yourdomain.com/telegram",  # URL publik HTTPS kamu
-    secret_token=os.getenv("WEBHOOK_SECRET"),       # Verifikasi bahwa request berasal dari Telegram
-    allowed_updates=Update.ALL_TYPES,
-)
-```
-
-> [!IMPORTANT]
-> - Webhook **wajib HTTPS** dengan sertifikat yang valid.
-> - Simpan `WEBHOOK_SECRET` di `.env` dengan nilai acak yang panjang.
-> - Jika memakai polling dan webhook bersamaan, Telegram hanya akan mengirim update ke salah satunya.
-
----
-
-## 📦 Contoh Kode Lengkap
-
-Berikut `bot.py` yang menggabungkan semua fitur di atas dalam satu file yang konsisten. Simpan sebagai `bot.py`, lalu jalankan dengan `python bot.py`.
-
-<details>
-<summary><b>📄 Klik untuk melihat <code>bot.py</code> lengkap</b></summary>
-
-```python
-import logging
-import os
-import sqlite3
-
-from dotenv import load_dotenv
-from telegram import (
-    InlineKeyboardButton,
-    InlineKeyboardMarkup,
-    Update,
-)
-from telegram.ext import (
-    Application,
-    CallbackQueryHandler,
-    CommandHandler,
-    ContextTypes,
-    ConversationHandler,
-    MessageHandler,
-    filters,
-)
-
-# ---------- Konfigurasi ----------
-load_dotenv()
-
-TOKEN = os.getenv("BOT_TOKEN")
-if not TOKEN:
-    raise ValueError("BOT_TOKEN tidak ditemukan. Isi file .env terlebih dahulu.")
-
-logging.basicConfig(
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-    level=logging.INFO,
-)
-logger = logging.getLogger(__name__)
-
-# ---------- Database ----------
-db = sqlite3.connect("bot.db")
-db.execute(
-    "CREATE TABLE IF NOT EXISTS users ("
-    "user_id INTEGER PRIMARY KEY, username TEXT, first_name TEXT)"
-)
-db.commit()
-
-# ---------- State percakapan ----------
-NAME, AGE = range(2)
-
-
-# ---------- Handler perintah ----------
-async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Simpan user ke database lalu tampilkan tombol."""
-    user = update.effective_user
-    db.execute(
-        "INSERT OR IGNORE INTO users (user_id, username, first_name) VALUES (?, ?, ?)",
-        (user.id, user.username, user.first_name),
-    )
-    db.commit()
-
-    keyboard = [
-        [InlineKeyboardButton("ℹ️ Info", callback_data="info")],
-        [InlineKeyboardButton("🌐 Website", url="https://example.com")],
-    ]
-    await update.message.reply_text(
-        f"Halo {user.first_name}! 👋\nPilih aksi di bawah ini:",
-        reply_markup=InlineKeyboardMarkup(keyboard),
-    )
-
-
-async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Tampilkan daftar perintah."""
-    await update.message.reply_text(
-        "Perintah yang tersedia:\n"
-        "/start - Mulai bot\n"
-        "/help - Bantuan\n"
-        "/register - Daftar nama dan umur\n"
-        "/cancel - Batalkan pendaftaran\n\n"
-        "Kirim pesan apa saja untuk saya ulangi."
-    )
-
-
-async def echo(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Balas pesan teks dengan isi yang sama."""
-    await update.message.reply_text(f"Echo: {update.message.text}")
-
-
-# ---------- Callback tombol ----------
-async def button_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    query = update.callback_query
-    await query.answer()
-    if query.data == "info":
-        await query.edit_message_text("ℹ️ Ini adalah bot contoh dari panduan python-telegram-bot.")
-
-
-# ---------- ConversationHandler: /register ----------
-async def register(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    await update.message.reply_text("Siapa namamu?")
-    return NAME
-
-
-async def get_name(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    context.user_data["name"] = update.message.text
-    await update.message.reply_text("Berapa umurmu?")
-    return AGE
-
-
-async def get_age(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    text = update.message.text.strip()
-    if not text.isdigit():
-        await update.message.reply_text("Umur harus berupa angka. Coba lagi:")
-        return AGE
-    name = context.user_data.pop("name", "-")
-    await update.message.reply_text(f"Terima kasih! Nama: {name}, umur: {text}.")
-    return ConversationHandler.END
-
-
-async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    context.user_data.clear()
-    await update.message.reply_text("Pendaftaran dibatalkan.")
-    return ConversationHandler.END
-
-
-# ---------- Fungsi utama ----------
-def main() -> None:
-    application = Application.builder().token(TOKEN).build()
-
-    conv_handler = ConversationHandler(
-        entry_points=[CommandHandler("register", register)],
-        states={
-            NAME: [MessageHandler(filters.TEXT & ~filters.COMMAND, get_name)],
-            AGE: [MessageHandler(filters.TEXT & ~filters.COMMAND, get_age)],
-        },
-        fallbacks=[CommandHandler("cancel", cancel)],
-    )
-
-    application.add_handler(CommandHandler("start", start))
-    application.add_handler(CommandHandler("help", help_command))
-    application.add_handler(CallbackQueryHandler(button_callback))
-    application.add_handler(conv_handler)  # Harus sebelum echo
-    application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, echo))
-
-    logger.info("Bot mulai berjalan...")
-    application.run_polling(allowed_updates=Update.ALL_TYPES)
-
-
-if __name__ == "__main__":
-    main()
-```
-
-</details>
-
----
+Tes mencakup validasi mode webhook, upsert profil dan pendaftaran, serta migrasi database lama. Tes ini bukan pengujian integrasi dengan Telegram.
 
 ## 🌍 Deployment
 
-Setelah bot selesai, jalankan di server agar aktif 24/7.
+### Docker Compose (disarankan untuk contoh ini)
 
-### 1️⃣ VPS (DigitalOcean, Linode, AWS EC2, dll.)
+Buat `.env` dan isi token terlebih dahulu, lalu:
 
-1. Siapkan server Linux (Ubuntu 22.04 LTS direkomendasikan).
-2. Masuk via SSH, lalu pasang Python, pip, dan venv:
+```bash
+docker compose up --build -d
+docker compose logs -f telegram-bot
+```
 
-   ```bash
-   sudo apt update && sudo apt install -y python3 python3-venv python3-pip git
-   ```
+Hentikan container tanpa menghapus database:
 
-3. Clone repository atau upload file proyek.
-4. Buat virtual environment dan instal dependensi.
-5. Buat file `.env` **langsung di server** (jangan dari Git).
+```bash
+docker compose down
+```
 
-### 2️⃣ Menjalankan sebagai service dengan systemd
+Jangan menambahkan `-v` ke perintah `down` kecuali memang ingin menghapus volume dan seluruh data SQLite. File `.env` tidak disalin ke image; Compose memasukkannya saat runtime.
 
-Buat file `/etc/systemd/system/telegram-bot.service`:
+Untuk inspeksi manual terhadap volume, gunakan perintah Docker volume yang sesuai dengan lingkunganmu dan buat salinan database saat bot dihentikan atau setelah memastikan prosedur backup aman.
+
+### VPS dengan systemd
+
+Buat virtual environment, pasang dependensi, dan tempatkan repository serta `.env` di lokasi yang hanya dapat diakses akun service. Contoh unit:
 
 ```ini
 [Unit]
 Description=Telegram Bot
-After=network.target
+Wants=network-online.target
+After=network-online.target
 
 [Service]
-User=youruser
-WorkingDirectory=/home/youruser/telegram-bot-tutorial
-ExecStart=/home/youruser/telegram-bot-tutorial/venv/bin/python bot.py
-Restart=always
+Type=simple
+User=telegrambot
+WorkingDirectory=/opt/telegram-bot
+EnvironmentFile=/opt/telegram-bot/.env
+Environment=BOT_DB_PATH=/var/lib/telegram-bot/bot.db
+ExecStart=/opt/telegram-bot/.venv/bin/python /opt/telegram-bot/bot.py
+Restart=on-failure
 RestartSec=5
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/telegram-bot
 
 [Install]
 WantedBy=multi-user.target
 ```
 
-Aktifkan dan jalankan:
+Pastikan direktori data dimiliki akun `telegrambot`, lalu muat dan aktifkan service:
 
 ```bash
 sudo systemctl daemon-reload
 sudo systemctl enable --now telegram-bot
-sudo systemctl status telegram-bot      # Cek status
-sudo journalctl -u telegram-bot -f      # Lihat log secara live
+sudo systemctl status telegram-bot
+sudo journalctl -u telegram-bot -f
 ```
 
-### 3️⃣ Platform cloud
+`EnvironmentFile` di atas untuk format file environment sederhana seperti `.env` contoh; jangan gunakan nilai ber-spasi atau shell substitution di dalamnya.
 
-| Platform | Cara singkat | Catatan |
-|---|---|---|
-| **Railway** | Hubungkan repo GitHub, isi variabel `BOT_TOKEN`, deploy | Cek paket gratis/kredit terbaru |
-| **Render** | Buat *Background Worker*, start command `python bot.py` | Worker biasanya berbayar |
-| **Fly.io** | Deploy dengan `flyctl`, gunakan Dockerfile | Cocok untuk Docker |
-| **PythonAnywhere** | Upload file, buat virtualenv, jalankan di tab *Tasks* | Pastikan task selalu aktif |
+## 🔐 Keamanan dan batasan
 
-> [!CAUTION]
-> **Heroku tidak lagi menyediakan paket gratis** (sejak November 2022). Jika memakai Heroku, siapkan paket berbayar, atau pilih platform lain di tabel ini.
-
-### 4️⃣ Docker
-
-Buat `Dockerfile`:
-
-```dockerfile
-FROM python:3.11-slim
-
-WORKDIR /app
-
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
-
-COPY . .
-
-CMD ["python", "bot.py"]
-```
-
-Buat `.dockerignore` agar `.env` dan `venv/` tidak ikut masuk ke image:
-
-```dockerignore
-venv/
-.venv/
-__pycache__/
-*.pyc
-.env
-.git/
-bot.db
-```
-
-Build dan jalankan:
-
-```bash
-docker build -t telegram-bot .
-docker run -d --name telegram-bot --restart unless-stopped --env-file .env telegram-bot
-docker logs -f telegram-bot
-```
-
----
-
-## 🔐 Keamanan & Best Practices
-
-- 🔑 **Jangan commit token.** Simpan di `.env` dan pastikan `.env` ada di `.gitignore`.
-- 🔁 **Revoke token jika bocor** lewat `/revoke` di BotFather.
-- 🔒 **Gunakan HTTPS** untuk webhook, dan aktifkan `secret_token`.
-- ✅ **Validasi input** pengguna, misalnya cek tipe dan panjang teks.
-- 🛡️ **Batasi akses** dengan whitelist user ID jika bot bersifat pribadi:
-
-  ```python
-  ADMIN_IDS = {123456789}  # Ganti dengan Telegram user ID kamu
-
-  async def admin_only(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-      if update.effective_user.id not in ADMIN_IDS:
-          await update.message.reply_text("Maaf, perintah ini hanya untuk admin.")
-          return
-      await update.message.reply_text("Selamat datang, admin!")
-  ```
-
-- ⏱️ **Terapkan rate limiting** untuk mencegah spam.
-- 📝 **Gunakan logging** yang baik untuk debugging dan monitoring.
-- 🧱 **Pisahkan konfigurasi dari kode**, dan gunakan type hints.
-
----
+- Jangan commit `.env`, token bot, webhook secret, atau database berisi data pengguna.
+- Jika token bocor, cabut segera di BotFather dan perbarui secret di server.
+- Contoh membatasi pesan dan perintah ke chat pribadi. Tetap validasi input dan batasi ukuran/jumlah data sesuai kebutuhan aplikasi.
+- Handler umur membatasi nilai ke 0–130 dan nama ke 1–100 karakter; aturan ini hanya contoh dan mungkin perlu disesuaikan.
+- Terapkan rate limiting dan proteksi spam yang sesuai di aplikasi. Rate limiting permintaan keluar ke Bot API berbeda dari pembatasan pesan masuk pengguna.
+- Beri tahu pengguna data apa yang disimpan, batasi akses, tentukan masa retensi, dan sediakan proses penghapusan/backup yang sesuai hukum dan kebutuhan layanan.
+- SQLite cocok untuk contoh sederhana/satu instance. Jangan menganggap file database lokal sebagai backup atau penyimpanan high-availability.
+- Log error untuk diagnosis, tetapi jangan mencatat token, secret, atau isi percakapan sensitif.
+- Jangan aktifkan `concurrent_updates` untuk `ConversationHandler` tanpa memahami persyaratan pemrosesan berurutan.
 
 ## 🩺 Troubleshooting
 
 <details>
-<summary><b>Bot tidak merespons</b></summary>
+<summary><b>Bot tidak merespons atau token ditolak</b></summary>
 
-- Pastikan token benar dan bot belum dihapus.
-- Cek log di terminal atau `journalctl` untuk melihat error.
-- Pastikan koneksi internet server stabil.
-- Jika memakai webhook, pastikan URL publik bisa diakses dan sertifikat HTTPS valid.
+Periksa `BOT_TOKEN`, pastikan pengguna sudah menekan **Start** pada bot, cek koneksi server, dan lihat log proses. Jika token salah atau telah dicabut, buat token baru di BotFather dan perbarui `.env`.
 
 </details>
 
 <details>
 <summary><b><code>Conflict: terminated by other getUpdates request</code></b></summary>
 
-Hanya satu instance bot yang boleh polling pada satu waktu. Hentikan instance lain (misalnya bot yang masih jalan di laptop atau container lama), atau gunakan webhook.
+Ada instance lain yang menggunakan polling dengan token yang sama. Hentikan instance lama atau pastikan hanya satu worker polling berjalan. Bila beralih ke webhook, pastikan webhook lama tidak mengganggu konfigurasi yang baru.
 
 </details>
 
 <details>
-<summary><b><code>AttributeError: 'Updater' object has no attribute '_Updater__polling_cleanup_cb'</code></b></summary>
+<summary><b><code>BOT_TOKEN tidak ditemukan</code></b></summary>
 
-Terjadi jika memakai python-telegram-bot 20.x di Python 3.13. Solusinya, pakai versi yang lebih baru:
-
-```bash
-pip install --upgrade "python-telegram-bot==22.8"
-```
+Pastikan `.env` berada di direktori kerja tempat `python bot.py` dijalankan, atau ekspor `BOT_TOKEN` sebagai environment variable. Pastikan nama variabel tepat dan nilainya bukan placeholder.
 
 </details>
 
 <details>
-<summary><b>Pesan tidak terkirim</b></summary>
+<summary><b>Webhook gagal diatur atau Telegram tidak dapat mengirim update</b></summary>
 
-- Pastikan pengguna sudah menekan **Start** di chat bot.
-- Perhatikan batas rate limit Telegram. Jika terlalu sering, Telegram akan membatasi sementara.
-
-</details>
-
-<details>
-<summary><b><code>telegram.error.Unauthorized</code></b></summary>
-
-Token salah atau sudah di-revoke. Buat token baru lewat BotFather, lalu perbarui `.env`.
+Pastikan URL publik memakai HTTPS dengan sertifikat valid, DNS dan reverse proxy benar, path URL sama dengan `WEBHOOK_PATH`, port publik dapat dijangkau Telegram, serta `WEBHOOK_SECRET` disetel. Periksa log aplikasi dan proxy.
 
 </details>
 
 <details>
-<summary><b><code>ValueError: BOT_TOKEN tidak ditemukan</code></b></summary>
+<summary><b>Data SQLite hilang setelah deployment Docker</b></summary>
 
-- Pastikan file `.env` berada di folder yang sama dengan `bot.py` (atau folder kerja saat menjalankan perintah).
-- Pastikan isinya `BOT_TOKEN=...` tanpa spasi di sekitar tanda `=`.
+Gunakan `docker compose` dari repository ini agar named volume dipasang di `/data`. Jangan menjalankan `docker compose down -v` jika volume berisi data yang masih dibutuhkan.
 
 </details>
-
----
 
 ## 📚 Referensi
 
-- 📖 [Dokumentasi python-telegram-bot](https://docs.python-telegram-bot.org/)
-- 🧪 [Contoh-contoh bot python-telegram-bot](https://github.com/python-telegram-bot/python-telegram-bot/tree/master/examples)
-- 📘 [Dokumentasi Telegram Bot API](https://core.telegram.org/bots/api)
-- 🤖 [BotFather](https://t.me/BotFather)
+- [Dokumentasi python-telegram-bot v22.8](https://docs.python-telegram-bot.org/en/v22.8/)
+- [Contoh resmi python-telegram-bot](https://github.com/python-telegram-bot/python-telegram-bot/tree/master/examples)
+- [Telegram Bot API](https://core.telegram.org/bots/api)
+- [BotFather](https://t.me/BotFather)
 
 ---
 
-<div align="center">
+Kode dan panduan dilisensikan di bawah MIT; lihat berkas [`LICENSE`](LICENSE).
 
-Selamat mencoba dan jangan ragu bereksperimen! 🚀
-
-⭐ Jika panduan ini membantu, beri bintang pada repository ini.
-
-</div>
+⭐ Jika panduan ini membantu, silakan beri bintang pada repository.
