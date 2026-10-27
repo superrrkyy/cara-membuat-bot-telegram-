@@ -1,0 +1,18 @@
+services:
+  telegram-bot:
+    build: .
+    container_name: telegram-bot
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      BOT_DB_PATH: /data/bot.db
+    # Untuk webhook di belakang reverse proxy yang berjalan di host.
+    # Hapus jika hanya memakai polling atau gunakan jaringan internal proxy.
+    ports:
+      - "127.0.0.1:8443:8443"
+    volumes:
+      - telegram-bot-data:/data
+
+volumes:
+  telegram-bot-data:
